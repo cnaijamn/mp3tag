@@ -1,0 +1,75 @@
+;;; Copyright (c) 2026 Chez Naijamn
+;;;
+;;; Permission is hereby granted, free of charge, to any person
+;;; obtaining a copy of this software and associated documentation
+;;; files (the "Software"), to deal in the Software without
+;;; restriction, including without limitation the rights to use, copy,
+;;; modify, merge, publish, distribute, sublicense, and/or sell copies
+;;; of the Software, and to permit persons to whom the Software is
+;;; furnished to do so, subject to the following conditions:
+;;;
+;;; The above copyright notice and this permission notice shall be
+;;; included in all copies or substantial portions of the Software.
+;;;
+;;; THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
+;;; EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
+;;; MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND
+;;; NONINFRINGEMENT.  IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT
+;;; HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER LIABILITY,
+;;; WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+;;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
+;;; DEALINGS IN THE SOFTWARE.
+
+(in-package #:mp3tag)
+
+(defun take-one (data &rest keys)
+  ;(reduce #'getf keys :initial-value data)
+  (reduce (lambda (data key)
+            (if (integerp key)
+                (nth key data)
+                (getf data key)))
+          keys
+          :initial-value data))
+
+(defun get-id3-by-ffprobe (mp3-file)
+  (jonathan:parse ; json -> plist
+    (uiop:run-program (list "/usr/bin/ffprobe"
+                            "-v" "quiet"
+                            "-print_format" "json"
+                            "-show_format"
+                            "-show_streams"
+                            mp3-file)
+                      :output :string)))
+
+(defun copy-cover-by-ffmpeg (mp3-file cover-file)
+  (uiop:run-program (list "/usr/bin/ffmpeg"
+                          "-v" "error" "-i"
+                          mp3-file
+                          "-an" "-c:v" "copy"
+                          cover-file)))
+
+(defun get-id3 (mp3-file)
+  (let ((plst (get-id3-by-ffprobe mp3-file)))
+    (list
+      ;(cons "bitrate" (truncate (parse-integer (take-one plst :|format| :|bit_rate|)) 1000))
+      (cons "bitrate" (truncate (parse-integer (take-one plst :|streams| 0 :|bit_rate|)) 1000))
+      (cons "samples" (parse-integer (take-one plst :|streams| 0 :|sample_rate|)))
+      (cons "artist" (take-one plst :|format| :|tags| :|artist|))
+      (cons "year" (take-one plst :|format| :|tags| :|date|))
+      (cons "album" (take-one plst :|format| :|tags| :|album|))
+      (cons "albumartist" (take-one plst :|format| :|tags| :|album_artist|))
+      (cons "disc" (take-one plst :|format| :|tags| :|disc|))
+      (cons "track" (take-one plst :|format| :|tags| :|track|))
+      (cons "genre" (take-one plst :|format| :|tags| :|genre|))
+      (cons "title" (take-one plst :|format| :|tags| :|title|))
+      (cons "publisher" (take-one plst :|format| :|tags| :|publisher|))
+      (cons "pictxt" (take-one plst :|streams| 1 :|title|))
+      (cons "picbin" (if (take-one plst :|streams| 1) "<yes>" "<no>"))
+      (cons "picwidth" (take-one plst :|streams| 1 :|width|))
+      (cons "picheight" (take-one plst :|streams| 1 :|height|)))))
+
+(defun id3-info (mp3-file cover-file)
+  (let ((id3-plst (get-id3 mp3-file)))
+    (when cover-file
+      (copy-cover-by-ffmpeg mp3-file cover-file))
+    id3-plst))

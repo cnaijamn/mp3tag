@@ -1,0 +1,16 @@
+#!/usr/bin/env -S sbcl --script
+;;;
+;;; Simple MP3 tag
+;;;
+;;; Required: sbcl ffmpeg
+;;; 2026-08-22 `info`
+;;;
+
+(defvar *my-ql-dir* ".quicklisp.sbcl")
+
+(load (merge-pathnames
+       (format nil "~a/setup.lisp" *my-ql-dir*)
+       (user-homedir-pathname)))
+
+(ql:quickload :mp3tag :silent t)
+(mp3tag:main)
