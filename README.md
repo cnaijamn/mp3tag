@@ -20,7 +20,7 @@ mp3tag info
 
 Example:
 
-    $ mp3tag info /tmp/my_cover.jpg track-01.mp3
+    $ mp3tag info -c /tmp/my_cover.jpg track-01.mp3
 
 mp3tag update
 -------------
