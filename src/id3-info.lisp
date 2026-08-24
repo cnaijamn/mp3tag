@@ -33,7 +33,7 @@
 
 (defun get-id3-by-ffprobe (mp3-file)
   (jonathan:parse ; json -> plist
-    (uiop:run-program (list "/usr/bin/ffprobe"
+    (uiop:run-program (list "ffprobe"
                             "-v" "quiet"
                             "-print_format" "json"
                             "-show_format"
@@ -42,34 +42,37 @@
                       :output :string)))
 
 (defun copy-cover-by-ffmpeg (mp3-file cover-file)
-  (uiop:run-program (list "/usr/bin/ffmpeg"
-                          "-v" "error" "-i"
-                          mp3-file
+  (uiop:run-program (list "ffmpeg"
+                          "-v" "error"
+                          "-i" mp3-file
                           "-an" "-c:v" "copy"
                           cover-file)))
 
 (defun get-id3 (mp3-file)
-  (let ((plst (get-id3-by-ffprobe mp3-file)))
+  (let ((alst (get-id3-by-ffprobe mp3-file)))
     (list
-      ;(cons "bitrate" (truncate (parse-integer (take-one plst :|format| :|bit_rate|)) 1000))
-      (cons "bitrate" (truncate (parse-integer (take-one plst :|streams| 0 :|bit_rate|)) 1000))
-      (cons "samples" (parse-integer (take-one plst :|streams| 0 :|sample_rate|)))
-      (cons "artist" (take-one plst :|format| :|tags| :|artist|))
-      (cons "year" (take-one plst :|format| :|tags| :|date|))
-      (cons "album" (take-one plst :|format| :|tags| :|album|))
-      (cons "albumartist" (take-one plst :|format| :|tags| :|album_artist|))
-      (cons "disc" (take-one plst :|format| :|tags| :|disc|))
-      (cons "track" (take-one plst :|format| :|tags| :|track|))
-      (cons "genre" (take-one plst :|format| :|tags| :|genre|))
-      (cons "title" (take-one plst :|format| :|tags| :|title|))
-      (cons "publisher" (take-one plst :|format| :|tags| :|publisher|))
-      (cons "pictxt" (take-one plst :|streams| 1 :|title|))
-      (cons "picbin" (if (take-one plst :|streams| 1) "<yes>" "<no>"))
-      (cons "picwidth" (take-one plst :|streams| 1 :|width|))
-      (cons "picheight" (take-one plst :|streams| 1 :|height|)))))
+      ;(cons "bitrate" (truncate (parse-integer (take-one alst :|format| :|bit_rate|)) 1000))
+      (cons "bitrate" (truncate (parse-integer (take-one alst :|streams| 0 :|bit_rate|)) 1000))
+      (cons "samples" (parse-integer (take-one alst :|streams| 0 :|sample_rate|)))
+      (cons "artist" (take-one alst :|format| :|tags| :|artist|))
+      (cons "year" (take-one alst :|format| :|tags| :|date|))
+      (cons "album" (take-one alst :|format| :|tags| :|album|))
+      (cons "albumartist" (take-one alst :|format| :|tags| :|album_artist|))
+      (cons "disc" (take-one alst :|format| :|tags| :|disc|))
+      (cons "track" (take-one alst :|format| :|tags| :|track|))
+      (cons "genre" (take-one alst :|format| :|tags| :|genre|))
+      (cons "title" (take-one alst :|format| :|tags| :|title|))
+      (cons "publisher" (take-one alst :|format| :|tags| :|publisher|))
+      (cons "pictxt" (take-one alst :|streams| 1 :|title|))
+      (cons "picbin" (if (take-one alst :|streams| 1) "<yes>" "<no>"))
+      (cons "picwidth" (take-one alst :|streams| 1 :|width|))
+      (cons "picheight" (take-one alst :|streams| 1 :|height|)))))
 
-(defun id3-info (mp3-file cover-file)
-  (let ((id3-plst (get-id3 mp3-file)))
-    (when cover-file
+;; Info
+(defun id3-info (mp3-file &optional cover-file)
+  (let ((id3-alst (get-id3 mp3-file)))
+    (when (and cover-file
+               (equal (cdr (assoc "picbin" id3-alst :test #'string=))
+                      "<yes>"))
       (copy-cover-by-ffmpeg mp3-file cover-file))
-    id3-plst))
+    id3-alst))

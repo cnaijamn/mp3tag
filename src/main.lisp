@@ -29,27 +29,29 @@
           :cover-file (getf opt-plst :c))))
 
 (defun get-command-of-update (command-list)
-  ;TODO
-  )
+  (multiple-value-bind (opt-plst just-lst)
+      (parse-options command-list)
+    (let ((c-val (getf opt-plst :c)))
+      (remf opt-plst :c)
+      (list :id3-plst opt-plst
+            :mp3-file (first just-lst)
+            :cover-file c-val))))
 
 ;; Info
 (defun do-info (command-list)
   (let* ((lst (get-info-command command-list))
-         (id3-plst (id3-info (getf lst :mp3-file)
+         (id3-alst (id3-info (getf lst :mp3-file)
                              (getf lst :cover-file))))
-    (loop for id3 in id3-plst
+    (loop for id3 in id3-alst
           do (format t "~a:~a~%"
                      (car id3)
                      (if #1=(cdr id3) #1# "")))))
 ;; Update
 (defun do-update (command-list)
-  (let ((lst (get-command-of-update (cdr cmdlst))))
-    (id3-update (getf lst :mp3-file)
-                (getf lst :cover-file)
-                ;TODO id3-plst
-                )
-    ;TODO format t
-    ))
+  (let ((lst (get-command-of-update command-list)))
+    (id3-update (getf lst :id3-plst)
+                (getf lst :mp3-file)
+                (getf lst :cover-file))))
 
 (defun main ()
   (handler-case
@@ -67,6 +69,7 @@
           (t (error "UNKNOWN MODE")))
         nil)
     (error (c)
+      ;TODO "Usage: ..."
       (format t "ERROR: ~a~%" (uiop:command-line-arguments))
       (format t "ERROR: ~a~%" c)
       nil)))

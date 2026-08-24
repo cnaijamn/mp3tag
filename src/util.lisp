@@ -20,31 +20,14 @@
 ;;; OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER
 ;;; DEALINGS IN THE SOFTWARE.
 
-(defsystem "mp3tag"
-  :version "0.1.0"
-  :depends-on (jonathan)
-  :license "BSD"
-  :author "Chez Naijamn"
-  :description ""
-  :components ((:module "src"
-                :serial t
-                :components
-                ((:file "package")
-                 (:file "parse-options")
-                 (:file "util")
-                 (:file "id3-info")
-                 (:file "id3-update")
-                 (:file "main"))))
-  :in-order-to ((test-op (test-op "mp3tag/tests"))))
+(in-package #:mp3tag)
 
-;;TODO
-(defsystem "mp3tag/tests"
-  :author ""
-  :license ""
-  :depends-on ("mp3tag"
-               "rove")
-  :components ((:module "tests"
-                :components
-                ((:file "main"))))
-  :description "Test system for mp3tag"
-  :perform (test-op (op c) (symbol-call :rove :run c)))
+(defun make-temp-pathname (pathname &optional (extension "tmp"))
+  (loop
+    for name = (format nil ".~A"
+                       (random 1000000000))
+    for tmp = (make-pathname :name name
+                             :type extension
+                             :defaults pathname)
+    unless (probe-file tmp)
+      return tmp))
