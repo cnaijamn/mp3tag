@@ -40,7 +40,7 @@ Quicklisp:
 
     (ql:quickload :mp3tag)
 
-    (mp3tag:id3-info "track-01.mp3")
+    (mp3tag:id3-info #P"track-01.mp3")
     ;=> (("bitrate" . 320) ("samples" . 44100) ("artist" . "Allan Holdsworth")
     ;    ("year" . "2017") ("album" . "Eidolon: The Allan Holdsworth Collection")
     ;    ("albumartist") ("disc" . "02") ("track" . "05") ("genre" . "Jazz")
@@ -49,6 +49,6 @@ Quicklisp:
 
     (mp3tag:id3-update '(:a "CL Lander" :y "2026" :l "Land of Lisp" :r "Lisper"
                          :d "02" :k "10" :g "Rock" :t "Hello, Land of Lisp")
-                       "[2-10] Hello, Land of Lisp.mp3"
-                       "cover.jpg")
+                       #P"[2-10] Hello, Land of Lisp.mp3"
+                       #P"cover.jpg")
     ;=> NIL

@@ -48,8 +48,8 @@
                           "-an" "-c:v" "copy"
                           cover-file)))
 
-(defun get-id3 (mp3-file)
-  (let ((alst (get-id3-by-ffprobe mp3-file)))
+(defun get-id3 (mp3-pathname)
+  (let ((alst (get-id3-by-ffprobe (uiop:native-namestring mp3-pathname))))
     (list
       ;(cons "bitrate" (truncate (parse-integer (take-one alst :|format| :|bit_rate|)) 1000))
       (cons "bitrate" (truncate (parse-integer (take-one alst :|streams| 0 :|bit_rate|)) 1000))
@@ -69,10 +69,11 @@
       (cons "picheight" (take-one alst :|streams| 1 :|height|)))))
 
 ;; Info
-(defun id3-info (mp3-file &optional cover-file)
-  (let ((id3-alst (get-id3 mp3-file)))
-    (when (and cover-file
+(defun id3-info (mp3-pathname &optional cover-pathname)
+  (let ((id3-alst (get-id3 mp3-pathname)))
+    (when (and cover-pathname
                (equal (cdr (assoc "picbin" id3-alst :test #'string=))
                       "<yes>"))
-      (copy-cover-by-ffmpeg mp3-file cover-file))
+      (copy-cover-by-ffmpeg (uiop:native-namestring mp3-pathname)
+                            (uiop:native-namestring cover-pathname)))
     id3-alst))

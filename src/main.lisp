@@ -25,8 +25,8 @@
 (defun get-info-command (command-list)
   (multiple-value-bind (opt-plst just-lst)
       (parse-options command-list)
-    (list :mp3-file (first just-lst)
-          :cover-file (getf opt-plst :c))))
+    (list :mp3-pathname (uiop:ensure-pathname (first just-lst))
+          :cover-pathname (uiop:ensure-pathname (getf opt-plst :c)))))
 
 (defun get-command-of-update (command-list)
   (multiple-value-bind (opt-plst just-lst)
@@ -34,14 +34,14 @@
     (let ((c-val (getf opt-plst :c)))
       (remf opt-plst :c)
       (list :id3-plst opt-plst
-            :mp3-file (first just-lst)
-            :cover-file c-val))))
+            :mp3-pathname (uiop:ensure-pathname (first just-lst))
+            :cover-pathname (uiop:ensure-pathname c-val)))))
 
 ;; Info
 (defun do-info (command-list)
   (let* ((lst (get-info-command command-list))
-         (id3-alst (id3-info (getf lst :mp3-file)
-                             (getf lst :cover-file))))
+         (id3-alst (id3-info (getf lst :mp3-pathname)
+                             (getf lst :cover-pathname))))
     (loop for id3 in id3-alst
           do (format t "~a:~a~%"
                      (car id3)
@@ -50,8 +50,8 @@
 (defun do-update (command-list)
   (let ((lst (get-command-of-update command-list)))
     (id3-update (getf lst :id3-plst)
-                (getf lst :mp3-file)
-                (getf lst :cover-file))))
+                (getf lst :mp3-pathname)
+                (getf lst :cover-pathname))))
 
 (defun main ()
   (handler-case

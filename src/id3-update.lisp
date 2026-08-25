@@ -31,8 +31,6 @@
         (let ((val (getf id3-plst (car item))))
           (when val
             (push "-metadata" lst)
-            ;(push (format nil "~a=\"~a\"" (cdr item) val) lst))))
-            ;(push (format nil "~a=~s" (cdr item) val) lst))))
             (push (format nil "~a=~a" (cdr item) val) lst))))
     (nreverse lst)))
 
@@ -67,7 +65,9 @@
         (delete-file temp-file)))))
 
 ;; Update
-(defun id3-update (id3-plst mp3-file &optional cover-file)
+(defun id3-update (id3-plst mp3-pathname &optional cover-pathname)
   (progn
-    (set-id3-by-ffmpeg id3-plst mp3-file cover-file)
+    (set-id3-by-ffmpeg id3-plst
+                       (uiop:native-namestring mp3-pathname)
+                       (uiop:native-namestring cover-pathname))
     nil))
