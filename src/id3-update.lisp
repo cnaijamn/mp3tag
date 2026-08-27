@@ -27,7 +27,8 @@
     (dolist (item '((:a . "artist") (:y . "date")
                     (:l . "album") (:r . "album_artist")
                     (:d . "disc") (:k . "track")
-                    (:g . "genre") (:t . "title")))
+                    (:g . "genre") (:t . "title")
+                    (:p . "publisher")))
         (let ((val (getf id3-plst (car item))))
           (when val
             (push "-metadata" lst)

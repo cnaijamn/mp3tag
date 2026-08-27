@@ -22,6 +22,20 @@
 
 (in-package #:mp3tag)
 
+(defun id3-alist->plist (id3-alst)
+  (loop for (key . val) in id3-alst
+        when val
+          append (cond ((string= key "artist") (list :a val))
+                       ((string= key "year") (list :y val))
+                       ((string= key "album") (list :l val))
+                       ((string= key "albumartist") (list :r val))
+                       ((string= key "disc") (list :d val))
+                       ((string= key "track") (list :k val))
+                       ((string= key "genre") (list :g val))
+                       ((string= key "title") (list :t val))
+                       ((string= key "publisher") (list :p val))
+                       (t nil))))
+
 (defun get-info-command (command-list)
   (multiple-value-bind (opt-plst just-lst)
       (parse-options command-list)
