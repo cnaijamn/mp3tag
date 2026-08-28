@@ -52,23 +52,25 @@
     (get-metadata-from-plst id3-plst)
     (list temp-file)))
 
-(defun set-id3-by-ffmpeg (id3-plst mp3-file cover-file)
-  (let ((temp-file (namestring (make-temp-pathname mp3-file "mp3"))))
+(defun set-id3-by-ffmpeg (id3-plst mp3-pathname cover-pathname)
+  (let* ((mp3-file (uiop:native-namestring mp3-pathname))
+         (cover-file (uiop:native-namestring cover-pathname))
+         (temp-pathname (make-temp-pathname "mp3"))
+         (temp-file (uiop:native-namestring temp-pathname)))
     (unwind-protect
         (progn
           (uiop:run-program
-            (get-opts-for-update id3-plst
-                                 mp3-file
-                                 cover-file
-                                 temp-file))
-          (rename-file temp-file mp3-file))
-      (when (probe-file temp-file)
-        (delete-file temp-file)))))
+           (get-opts-for-update id3-plst
+                                mp3-file
+                                cover-file
+                                temp-file))
+          (uiop:copy-file temp-pathname mp3-pathname))
+      (uiop:delete-file-if-exists temp-pathname))))
 
 ;; Update
 (defun id3-update (id3-plst mp3-pathname &optional cover-pathname)
   (progn
     (set-id3-by-ffmpeg id3-plst
-                       (uiop:native-namestring mp3-pathname)
-                       (uiop:native-namestring cover-pathname))
+                       mp3-pathname
+                       cover-pathname)
     nil))

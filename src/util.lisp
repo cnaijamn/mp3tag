@@ -22,12 +22,12 @@
 
 (in-package #:mp3tag)
 
-(defun make-temp-pathname (pathname &optional (extension "tmp"))
+(defun make-temp-pathname (&optional (extension "tmp"))
   (loop
     for name = (format nil ".~A"
                        (random 1000000000))
     for tmp = (make-pathname :name name
                              :type extension
-                             :defaults pathname)
+                             :defaults (uiop:temporary-directory))
     unless (probe-file tmp)
       return tmp))
